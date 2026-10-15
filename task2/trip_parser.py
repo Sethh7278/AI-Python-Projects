@@ -13,7 +13,7 @@ client = OpenAI(
 # Creating the class for a trip request
 class TripRequest(BaseModel):
     days: PositiveInt 
-    month: str
+    month: str 
     budget: PositiveInt | None
 
 
