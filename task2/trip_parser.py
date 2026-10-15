@@ -3,17 +3,18 @@ from pydantic import BaseModel, PositiveInt
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-# Creating the class for a trip request
 
 load_dotenv()
 #Connecting to client using client variable
 client = OpenAI(
     api_key= os.environ.get("OPENAI_API_KEY")
 )
+
+# Creating the class for a trip request
 class TripRequest(BaseModel):
-    days: PositiveInt
+    days: PositiveInt 
     month: str
-    budget: PositiveInt
+    budget: PositiveInt | None
 
 
 def print_llm_response(userinput):
