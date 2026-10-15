@@ -16,12 +16,12 @@ client = OpenAI(
 
 def print_llm_response(userinput):
     print (client.responses.create(
-        model="gpt-3.5-turbo",
-        instructions="Test bot that states the prompt",
+        model="gpt-4o-mini",
+        instructions="Simple response bot",
         input= userinput
     ).output_text)
     
-    
+user_prompt = input("Please enter the prompt you would like to ask: ")    
 
 #Making sure output is text
-print_llm_response("Test function")
+print_llm_response(user_prompt)
