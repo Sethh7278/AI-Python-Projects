@@ -1,7 +1,9 @@
 #Importing APIS
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
 
+load_dotenv()
 #Connecting to client using client variable
 client = OpenAI(
     api_key= os.environ.get("OPENAI_API_KEY")
@@ -20,7 +22,8 @@ def print_llm_response(userinput):
         instructions="Simple response bot",
         input= userinput
     ).output_text)
-    
+
+
 user_prompt = input("Please enter the prompt you would like to ask: ")    
 
 #Making sure output is text
