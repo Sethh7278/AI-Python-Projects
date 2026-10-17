@@ -22,13 +22,6 @@ class TripRequest(BaseModel):
     budget: PositiveInt | None
 
 
-def print_llm_response(userinput):
-    print (client.responses.create(
-        model="gpt-4o-mini",
-        instructions="Simple response bot",
-        input= userinput
-    ).output_text)
-
 #Parse response
 def parse_llm_response(userinput):
     return (client.responses.parse(
@@ -50,7 +43,7 @@ def load_costs(path):
             }
     return costs
 
-costs = load_costs("costs.csv")
+
 
 
 def estimate_cost(trip, costs):
@@ -64,15 +57,34 @@ def estimate_cost(trip, costs):
     # multiple daily cost by number of days
     overall_cost = price_per_day * days
     # return overall cost 
-    return  overall_cost
+    return overall_cost
+
+def budget_check(trip, cost):
+    budget = trip.budget
+    if budget is None:
+        return f"No budget given, Estimated cost: {cost}"
+    elif budget >= cost:
+        in_budget = True
+        difference = budget - cost
+    else:
+        in_budget = False
+        difference = cost - budget
+    if in_budget == True:
+        return f"Your trip is in budget by £{difference}"
+    else:
+        return f"Your trip goes over budget by £{difference}"
 
 
+costs = load_costs("costs.csv")
 
+prompt = input("""Please enter a description for the holiday you would like to go on containing the length in days, type of travel (hostel, hotel, guesthouse)
+    the month you would like to go in and the budget: \n""")
 
-# prompt = input("""Please enter a description for the holiday you would like to go on containing the length in days, type of travel (hostel, hotel, guesthouse)
-# the month you would like to go in and the budget: \n""")
+trip = parse_llm_response(prompt)
+if trip is None:
+    print("Sorry, I couldn't understand that trip. Try describing it again.")
+else:
+        cost = estimate_cost(trip, costs)
+        print(budget_check(trip, cost))
 
-#response = parse_llm_response(prompt)
-trip1 = TripRequest(days=7, month="march", budget=1000, style = "hostel")
-print(estimate_cost(trip1, costs))
-
+print(trip)
