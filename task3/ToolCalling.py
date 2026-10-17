@@ -47,22 +47,17 @@ def load_costs(path):
 
 
 def estimate_cost(trip, costs):
-    # finding out what style the user wants
     style = trip.style
-    # get the price for that style
     prices = costs[style]
     price_per_day = sum(prices.values())
-    #  find out amount of days user wants to go for
     days = trip.days
-    # multiple daily cost by number of days
     overall_cost = price_per_day * days
-    # return overall cost 
     return overall_cost
 
 def budget_check(trip, cost):
     budget = trip.budget
     if budget is None:
-        return f"No budget given, Estimated cost: {cost}"
+        return f"No budget given, Estimated cost: £{cost}"
     elif budget >= cost:
         in_budget = True
         difference = budget - cost
@@ -86,5 +81,5 @@ if trip is None:
 else:
         cost = estimate_cost(trip, costs)
         print(budget_check(trip, cost))
+        print(trip)
 
-print(trip)
