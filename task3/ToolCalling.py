@@ -65,9 +65,9 @@ def budget_check(trip, cost):
         in_budget = False
         difference = cost - budget
     if in_budget == True:
-        return f"Your trip is in budget by £{difference}"
+        return f"Your trip is in budget by £{difference} costing a total of £{cost}"
     else:
-        return f"Your trip goes over budget by £{difference}"
+        return f"Your trip goes over budget by £{difference} costing a total of £{cost}"
 
 
 costs = load_costs("costs.csv")
