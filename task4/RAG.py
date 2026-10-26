@@ -18,11 +18,28 @@ def load_notes(folder):
         notes[path.stem] = (path.read_text(encoding="utf-8"))
     return notes
 
-notes = load_notes("notes")
 
-# print(len(notes))
-# print(notes.keys())
 
+
+def get_embedding(text):
+    return client.embeddings.create(
+        model=("text-embedding-3-small"),
+        input=text
+    ).data[0].embedding
+
+def embed_notes(notes):
+    embedded_notes = {}
+    for name, text in (notes).items():
+        embedded_notes[name] = get_embedding(text)
+
+    return embedded_notes
+
+
+def similarity(a, b):
+    total = 0
+    for x, y in zip(a, b):
+        total += x * y
+    return total
 
 
 # Searching through the notes for specific words from the given question
@@ -46,11 +63,21 @@ def get_llm_response(userinput, context):
     ).output_text)
 
 
-def answer_question(question, notes):
-    keywords = keyword_search(question, notes)
+def embedding_search(question, note_embeddings):
+    results = []
+    embedded_question = get_embedding(question)
+    for name, embeddings in note_embeddings.items():
+       score = similarity(embeddings, embedded_question)
+       results.append((score, name))
+    return (sorted(results, reverse=True)[:3])
+
+
+
+def answer_question(question, notes, embedded_notes):
+    keywords = embedding_search(question, embedded_notes)
     context = ""
     for score, name in keywords:
-        if score > 0:
+        if score > 0.15:
             source = name
             text = notes[source]
             context += f"Source: {source} \n Text: {text}"
@@ -59,6 +86,14 @@ def answer_question(question, notes):
             continue
     return get_llm_response(question, context)
 
+
+
+notes = load_notes("notes")
+
+note_embeddings = embed_notes(notes)
+
 question = str(input("What would you like to ask our travel support robot?: "))
 
-print(answer_question(question, notes))
+
+
+print(answer_question(question, notes, note_embeddings))

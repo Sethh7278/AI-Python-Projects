@@ -20,27 +20,33 @@ def get_llm_response(userinput, context):
         input= f"Here is the user's question {userinput} and the context you can use {context}"
     ).output_text)
 
+
+
 def get_embedding(text):
     return client.embeddings.create(
         model=("text-embedding-3-small"),
         input=text
     ).data[0].embedding
 
+def embed_notes(notes):
+    embedded_notes = {}
+    for name, text in (notes).items():
+        embedded_notes[name] = get_embedding(text)
 
-def similarity(a, b):
-    total = 0
-    for x, y in zip(a, b):
-        total += x * y
-    return total
-
-
-scooter = get_embedding("scooter")
-elephant = get_embedding("elephant")
-motorbike = get_embedding("motorbike")
+    return embedded_notes
 
 
-print(similarity(scooter, motorbike))
-print(similarity(scooter, elephant))
 
-print(type(scooter))
-print(type(scooter[0]))
+
+
+# scooter = get_embedding("scooter")
+# elephant = get_embedding("elephant")
+# motorbike = get_embedding("motorbike")
+
+
+# print(similarity(scooter, motorbike))
+# print(similarity(scooter, elephant))
+
+# print(type(scooter))
+# print(type(scooter[0]))
+    # about 1536
