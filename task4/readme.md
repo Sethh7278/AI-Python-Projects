@@ -1,39 +1,64 @@
 # RAG Practice
 
-A small practice project for learning retrieval-augmented generation (RAG). It answers questions about travelling in Thailand by finding the most relevant chunk of travel info and passing it to an LLM to write the answer.
+A practice project for learning retrieval-augmented generation (RAG). It answers questions about travelling in Thailand using my own travel notes, cites the notes it used, and says when its notes don't cover a question.
 
 This is a learning exercise, not a finished product.
 
 ## How it works
 
-1. **Chunks**: travel info is split into small named chunks, e.g. `bike_rental`, `grand_palace`, `currency`.
-2. **Retrieval**: the user's question is matched against the chunks to find the most relevant one.
-3. **Generation**: the best chunk is given to the LLM along with the question, so the answer is based on that info rather than the model's general knowledge.
+1. **Notes:** 9 short Markdown notes I wrote, one topic each (e.g. `bike_rental`, `grand_palace`, `currency`).
+2. **Embedding:** each note is turned into an embedding with `text-embedding-3-small`.
+3. **Retrieval:** the question is embedded and compared with every note using a dot product (equivalent to cosine similarity, since OpenAI embeddings are normalised). The top 3 notes scoring above **0.25** are kept.
+4. **Generation:** the kept notes and the question are sent to `gpt-4o-mini`, which answers only from the notes and cites its sources.
+5. **No match:** if no note scores above 0.25, it replies "My notes don't cover that" without calling the model.
 
 ## Retrieval: keyword search vs embeddings
 
 I built retrieval in two stages:
 
-- **Step 4b, keyword search**: ranks chunks by how many of the question's words they contain.
-- **Step 4c, embedding search**: turns the question and each chunk into vectors and picks the chunk with the closest meaning (cosine similarity).
+- **Keyword search (4b):** ranks notes by how many of the question's words they contain.
+- **Embedding search (4c):** ranks notes by how close their meaning is to the question.
 
-The difference matters for questions that use different words from the source text. For example, "how much does a scooter cost" should find `bike_rental` even though the word "scooter" may not appear in it. Keyword search tends to miss these; embeddings are designed to catch them. Keyword search can still do better on exact names and rare terms.
+Embeddings help when the question uses different words from the note. For example, "what should I wear at the temple" should find `grand_palace`, even though the note talks about covering your shoulders rather than what to "wear". Keyword search can still do well on exact names and rare terms.
 
-Example test questions:
+| Question | Should find | Keyword search | Embedding search |
+|---|---|---|---|
+| "how much does a scooter cost" | bike_rental | <result> | <result> |
+| "what should I wear at the temple" | grand_palace | <result> | <result> |
+| "how much money do I need" | currency | <result> | <result> |
+| "what visa do I need for Japan" | nothing | <result> | <result> |
 
-| Question | Should find |
-|---|---|
-| "how much does a scooter cost" | bike_rental |
-| "what should I wear at the temple" | grand_palace |
-| "how much money do I need" | currency |
+## Choosing the 0.25 cut-off
+
+Similarity scores are almost never 0, so I needed a cut-off. 0.25 kept relevant notes, such as for the scooter question, and filtered out unrelated ones, such as for the Japan visa question.
+
+## Error handling
+
+- No relevant notes → "My notes don't cover that", without calling the model
+- Empty question → asks for a valid question
+- API failure → a friendly message instead of a crash
 
 ## What I learned
 
-- How a basic RAG pipeline fits together: chunk → retrieve → generate.
-- Why embedding search handles paraphrased questions better than plain keyword matching.
+- How a basic RAG pipeline fits together: load notes → embed → retrieve → generate.
+- When the bot gives a bad answer, check retrieval and generation separately: were the right notes found, and did the model use them well?
+- Why embeddings handle reworded questions better than keyword matching.
+- Prompts work better when the notes and the question are clearly labelled and separated.
+
+## Limitations
+
+- Only as accurate as the notes; some figures are approximate.
+- Time-sensitive notes, like visa rules, need re-checking.
+- Notes are re-embedded every time the script starts.
 
 ## Next steps
 
-- Measure both methods on a set of test questions and compare scores.
-- Try returning the top 3 chunks instead of only the best one.
+- Turn the test questions into an automated evaluation (Rung 5).
 - Try combining keyword and embedding search (hybrid search).
+
+## How to run
+
+```bash
+cd task4
+python RAG.py
+```
